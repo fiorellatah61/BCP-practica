@@ -547,47 +547,199 @@
 //   );
 // }
 
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, TrendingUp, Users, Server, Mail, Lock, Activity, FileText, Award, Bell } from 'lucide-react';
 
+// Interfaces para tipado seguro
+interface Alert {
+  // id: number;
+  type: 'critical' | 'warning' | 'info';
+  message: string;
+  time: string;
+  read: boolean;
+}
+
+interface KPICard {
+  title: string;
+  value: string;
+  status: 'success' | 'warning' | 'critical';
+  icon: React.ComponentType<{ className?: string }>;
+  metric: string;
+  description: string;
+}
+
+interface CoverageData {
+  retail: number;
+  empresas: number;
+  ti: number;
+}
+
+interface PatchingTime {
+  mes: string;
+  dias: number;
+}
+
+interface ThreatVector {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface PhishingTest {
+  area: string;
+  aprobados: number;
+  reprobados: number;
+}
+
+interface Policy {
+  id: string;
+  name: string;
+  status: 'Vigente' | 'En revisión';
+  lastUpdate: string;
+  framework: string;
+}
+
+interface InfrastructureItem {
+  name: string;
+  status: string;
+  value: string;
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+  endpoints: string;
+}
+
 export default function BCPSecurityMonitor() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [alerts] = useState([
+  const [alerts, setAlerts] = useState<Alert[]>([
     { id: 1, type: 'critical', message: 'Intento de phishing detectado en Área Retail', time: 'Hace 5 min', read: false },
     { id: 2, type: 'warning', message: '15 endpoints pendientes de actualización', time: 'Hace 1 hora', read: false },
     { id: 3, type: 'info', message: 'Parches de seguridad aplicados exitosamente', time: 'Hace 2 horas', read: true }
   ]);
 
-  // Datos simulados basados en las métricas del DSS05.01
-  const metricsData = {
-    coverageAntimalware: { retail: 98, empresas: 95, ti: 100 },
-    patchingTime: [
-      { mes: 'Ene', dias: 5 }, { mes: 'Feb', dias: 7 }, { mes: 'Mar', dias: 4 },
-      { mes: 'Abr', dias: 6 }, { mes: 'May', dias: 5 }, { mes: 'Jun', dias: 8 }
-    ],
-    threatVectors: [
-      { name: 'Correo', value: 65, color: '#ef4444' },
-      { name: 'Web', value: 20, color: '#f59e0b' },
-      { name: 'USB', value: 10, color: '#3b82f6' },
-      { name: 'Otros', value: 5, color: '#6b7280' }
-    ],
-    phishingTests: [
-      { area: 'Retail', aprobados: 85, reprobados: 15 },
-      { area: 'Empresas', aprobados: 78, reprobados: 22 },
-      { area: 'TI', aprobados: 95, reprobados: 5 },
-      { area: 'RRHH', aprobados: 82, reprobados: 18 }
-    ]
+  // Estados para datos simulados dinámicos
+  const [coverageAntimalware, setCoverageAntimalware] = useState<CoverageData>({ retail: 98, empresas: 95, ti: 100 });
+  const [patchingTime, setPatchingTime] = useState<PatchingTime[]>([
+    { mes: 'Ene', dias: 5 }, { mes: 'Feb', dias: 7 }, { mes: 'Mar', dias: 4 },
+    { mes: 'Abr', dias: 6 }, { mes: 'May', dias: 5 }, { mes: 'Jun', dias: 8 }
+  ]);
+  const [threatVectors] = useState<ThreatVector[]>([
+    { name: 'Correo', value: 65, color: '#ef4444' },
+    { name: 'Web', value: 20, color: '#f59e0b' },
+    { name: 'USB', value: 10, color: '#3b82f6' },
+    { name: 'Otros', value: 5, color: '#6b7280' }
+  ]);
+  const [phishingTests, setPhishingTests] = useState<PhishingTest[]>([
+    { area: 'Retail', aprobados: 85, reprobados: 15 },
+    { area: 'Empresas', aprobados: 78, reprobados: 22 },
+    { area: 'TI', aprobados: 95, reprobados: 5 },
+    { area: 'RRHH', aprobados: 82, reprobados: 18 }
+  ]);
+
+  // Simular datos en tiempo real
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Actualizar cobertura antimalware con variaciones pequeñas
+      setCoverageAntimalware(prev => ({
+        retail: Math.min(100, Math.max(90, prev.retail + (Math.random() - 0.5))),
+        empresas: Math.min(100, Math.max(85, prev.empresas + (Math.random() - 0.5))),
+        ti: Math.min(100, Math.max(95, prev.ti + (Math.random() - 0.3)))
+      }));
+
+      // Actualizar tiempos de parcheo
+      setPatchingTime(prev => 
+        prev.map(item => ({
+          ...item,
+          dias: Math.max(2, Math.min(10, item.dias + (Math.random() - 0.5)))
+        }))
+      );
+
+      // Actualizar tests de phishing
+      setPhishingTests(prev =>
+        prev.map(test => ({
+          ...test,
+          aprobados: Math.min(100, Math.max(70, test.aprobados + (Math.random() - 0.5))),
+          reprobados: Math.min(30, Math.max(0, test.reprobados + (Math.random() - 0.5)))
+        }))
+      );
+
+      // Simular nuevas alertas ocasionalmente
+      if (Math.random() > 0.7) {
+        const alertTypes: Array<'critical' | 'warning' | 'info'> = ['critical', 'warning', 'info'];
+        const messages = [
+          'Nueva vulnerabilidad detectada en sistemas',
+          'Actualización de seguridad disponible',
+          'Comportamiento sospechoso en red interna',
+          'Backup completado exitosamente'
+        ];
+        
+        const newAlert: Alert = {
+          id: Date.now(),
+          type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
+          message: messages[Math.floor(Math.random() * messages.length)],
+          time: 'Hace 1 min',
+          read: false
+        };
+
+        setAlerts(prev => [newAlert, ...prev.slice(0, 4)]);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para marcar alertas como leídas
+  const markAlertAsRead = (alertId: number) => {
+    setAlerts(prev => 
+      prev.map(alert => 
+        alert.id === alertId ? { ...alert, read: true } : alert
+      )
+    );
   };
 
-  const kpiCards = [
-    { title: 'Cobertura Antimalware', value: '97.6%', status: 'success', icon: Shield, metric: 'M1', description: 'Endpoints protegidos con EDR/AV actualizado' },
-    { title: 'Tiempo Medio de Parcheo', value: '5.8 días', status: 'success', icon: TrendingUp, metric: 'M2', description: 'Objetivo: ≤7 días para parches críticos' },
-    { title: 'Correos Bloqueados', value: '2,847', status: 'warning', icon: Mail, metric: 'M3', description: 'Correos maliciosos detectados este mes' },
-    { title: 'Concienciación', value: '85%', status: 'success', icon: Users, metric: 'M4', description: 'Empleados aprueban test de phishing' },
-    { title: 'Incidentes Activos', value: '3', status: 'critical', icon: AlertTriangle, metric: 'M5', description: 'Infecciones con impacto operativo' }
+  // KPIs calculados dinámicamente
+  const kpiCards: KPICard[] = [
+    { 
+      title: 'Cobertura Antimalware', 
+      value: `${((coverageAntimalware.retail + coverageAntimalware.empresas + coverageAntimalware.ti) / 3).toFixed(1)}%`, 
+      status: 'success', 
+      icon: Shield, 
+      metric: 'M1', 
+      description: 'Endpoints protegidos con EDR/AV actualizado' 
+    },
+    { 
+      title: 'Tiempo Medio de Parcheo', 
+      value: `${(patchingTime.reduce((sum, item) => sum + item.dias, 0) / patchingTime.length).toFixed(1)} días`, 
+      status: 'success', 
+      icon: TrendingUp, 
+      metric: 'M2', 
+      description: 'Objetivo: ≤7 días para parches críticos' 
+    },
+    { 
+      title: 'Correos Bloqueados', 
+      value: `${Math.floor(2847 + Math.random() * 100).toLocaleString()}`, 
+      status: 'warning', 
+      icon: Mail, 
+      metric: 'M3', 
+      description: 'Correos maliciosos detectados este mes' 
+    },
+    { 
+      title: 'Concienciación', 
+      value: `${(phishingTests.reduce((sum, test) => sum + test.aprobados, 0) / phishingTests.length).toFixed(0)}%`, 
+      status: 'success', 
+      icon: Users, 
+      metric: 'M4', 
+      description: 'Empleados aprueban test de phishing' 
+    },
+    { 
+      title: 'Incidentes Activos', 
+      value: `${alerts.filter(a => a.type === 'critical' && !a.read).length}`, 
+      status: 'critical', 
+      icon: AlertTriangle, 
+      metric: 'M5', 
+      description: 'Infecciones con impacto operativo' 
+    }
   ];
 
   const renderDashboard = () => (
@@ -596,8 +748,16 @@ export default function BCPSecurityMonitor() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {kpiCards.map((kpi, idx) => {
           const Icon = kpi.icon;
-          const statusColors = { success: 'bg-green-50 border-green-200', warning: 'bg-yellow-50 border-yellow-200', critical: 'bg-red-50 border-red-200' };
-          const iconColors = { success: 'text-green-600', warning: 'text-yellow-600', critical: 'text-red-600' };
+          const statusColors = { 
+            success: 'bg-green-50 border-green-200', 
+            warning: 'bg-yellow-50 border-yellow-200', 
+            critical: 'bg-red-50 border-red-200' 
+          };
+          const iconColors = { 
+            success: 'text-green-600', 
+            warning: 'text-yellow-600', 
+            critical: 'text-red-600' 
+          };
           
           return (
             <div key={idx} className={`border-2 rounded-lg p-4 ${statusColors[kpi.status]}`}>
@@ -619,14 +779,17 @@ export default function BCPSecurityMonitor() {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="font-bold text-gray-900 mb-4">M1: Cobertura Antimalware por Unidad</h3>
           <div className="space-y-3">
-            {Object.entries(metricsData.coverageAntimalware).map(([area, value]) => (
+            {Object.entries(coverageAntimalware).map(([area, value]) => (
               <div key={area}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="font-medium capitalize">{area}</span>
-                  <span className="font-bold">{value}%</span>
+                  <span className="font-bold">{value.toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div className="bg-blue-600 h-3 rounded-full transition-all duration-500" style={{ width: `${value}%` }} />
+                  <div 
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                    style={{ width: `${value}%` }} 
+                  />
                 </div>
               </div>
             ))}
@@ -637,14 +800,17 @@ export default function BCPSecurityMonitor() {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="font-bold text-gray-900 mb-4">M2: Tiempo Medio de Parcheo (días)</h3>
           <div className="flex items-end justify-between h-40 gap-2">
-            {metricsData.patchingTime.map((item, idx) => {
+            {patchingTime.map((item, idx) => {
               const height = (item.dias / 10) * 100;
               const color = item.dias <= 7 ? 'bg-green-500' : 'bg-red-500';
               return (
                 <div key={idx} className="flex flex-col items-center flex-1">
                   <div className="w-full flex flex-col items-center justify-end h-32">
-                    <span className="text-xs font-bold mb-1">{item.dias}d</span>
-                    <div className={`w-full ${color} rounded-t transition-all duration-500`} style={{ height: `${height}%` }} />
+                    <span className="text-xs font-bold mb-1">{item.dias.toFixed(1)}d</span>
+                    <div 
+                      className={`w-full ${color} rounded-t transition-all duration-500`} 
+                      style={{ height: `${height}%` }} 
+                    />
                   </div>
                   <span className="text-xs font-medium mt-2">{item.mes}</span>
                 </div>
@@ -652,8 +818,44 @@ export default function BCPSecurityMonitor() {
             })}
           </div>
           <div className="mt-4 flex items-center gap-2 text-xs">
-            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-500 rounded" /><span>≤ 7 días (objetivo)</span></div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-500 rounded" /><span>&gt; 7 días</span></div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-500 rounded" />
+              <span>≤ 7 días (objetivo)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-500 rounded" />
+              <span>&gt; 7 días</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico de vectores de amenaza */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 lg:col-span-2">
+          <h3 className="font-bold text-gray-900 mb-4">Distribución de Vectores de Amenaza</h3>
+          <div className="flex flex-wrap gap-4 justify-center">
+            {threatVectors.map((vector, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className="relative w-32 h-32">
+                  <svg viewBox="0 0 36 36" className="w-32 h-32 transform -rotate-90">
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#e5e7eb" strokeWidth="3"/>
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="15.9155" 
+                      fill="none" 
+                      stroke={vector.color} 
+                      strokeWidth="3" 
+                      strokeDasharray={`${vector.value} ${100 - vector.value}`} 
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-gray-900">{vector.value}%</span>
+                  </div>
+                </div>
+                <span className="text-sm font-medium mt-2">{vector.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -662,7 +864,10 @@ export default function BCPSecurityMonitor() {
 
   const renderRaci = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Users className="w-5 h-5 text-blue-600" />Matriz RACI - Estructuras Organizativas (3.2)</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Users className="w-5 h-5 text-blue-600" />
+        Matriz RACI - Estructuras Organizativas (3.2)
+      </h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -687,10 +892,12 @@ export default function BCPSecurityMonitor() {
                 {['aprobacion', 'implementacion', 'monitoreo', 'auditoria'].map((key) => (
                   <td key={key} className="px-4 py-3 text-center">
                     <span className={`inline-block px-3 py-1 rounded font-bold ${
-                      row[key] === 'R' ? 'bg-blue-100 text-blue-700' :
-                      row[key] === 'A' ? 'bg-green-100 text-green-700' :
-                      row[key] === 'C' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                    }`}>{row[key]}</span>
+                      row[key as keyof typeof row] === 'R' ? 'bg-blue-100 text-blue-700' :
+                      row[key as keyof typeof row] === 'A' ? 'bg-green-100 text-green-700' :
+                      row[key as keyof typeof row] === 'C' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {row[key as keyof typeof row]}
+                    </span>
                   </td>
                 ))}
               </tr>
@@ -701,26 +908,39 @@ export default function BCPSecurityMonitor() {
     </div>
   );
 
+  const policies: Policy[] = [
+    { id: '3.3.2.1', name: 'Política de prevención de software malicioso', status: 'Vigente', lastUpdate: '15/01/2025', framework: 'ISO 27002:12.2, CIS Control 8' },
+    { id: '3.3.2.2', name: 'Política de seguridad de conectividad', status: 'Vigente', lastUpdate: '10/01/2025', framework: 'DSS05.02' },
+    { id: '3.3.2.3', name: 'Política de seguridad de endpoints', status: 'En revisión', lastUpdate: '20/12/2024', framework: 'DSS05.03, CIS Control 4' }
+  ];
+
   const renderPolicies = () => (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><FileText className="w-5 h-5 text-blue-600" />Políticas y Procedimientos (3.3)</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-blue-600" />
+          Políticas y Procedimientos (3.3)
+        </h2>
         <div className="space-y-3">
-          {[
-            { id: '3.3.2.1', name: 'Política de prevención de software malicioso', status: 'Vigente', lastUpdate: '15/01/2025', framework: 'ISO 27002:12.2, CIS Control 8' },
-            { id: '3.3.2.2', name: 'Política de seguridad de conectividad', status: 'Vigente', lastUpdate: '10/01/2025', framework: 'DSS05.02' },
-            { id: '3.3.2.3', name: 'Política de seguridad de endpoints', status: 'En revisión', lastUpdate: '20/12/2024', framework: 'DSS05.03, CIS Control 4' }
-          ].map((policy) => (
+          {policies.map((policy) => (
             <div key={policy.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2"><Lock className="w-4 h-4 text-blue-600" /><span className="text-xs font-mono text-gray-500">{policy.id}</span></div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lock className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-mono text-gray-500">{policy.id}</span>
+                  </div>
                   <h3 className="font-semibold text-gray-900">{policy.name}</h3>
                   <div className="mt-2 flex gap-4 text-xs text-gray-600">
-                    <span>Actualización: {policy.lastUpdate}</span><span className="text-blue-600">{policy.framework}</span>
+                    <span>Actualización: {policy.lastUpdate}</span>
+                    <span className="text-blue-600">{policy.framework}</span>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${policy.status === 'Vigente' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{policy.status}</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  policy.status === 'Vigente' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {policy.status}
+                </span>
               </div>
             </div>
           ))}
@@ -732,11 +952,55 @@ export default function BCPSecurityMonitor() {
   const renderTraining = () => (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Award className="w-5 h-5 text-blue-600" />Cultura y Capacitación (3.5-3.6)</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <Award className="w-5 h-5 text-blue-600" />
+          Cultura y Capacitación (3.5-3.6)
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4"><h3 className="font-semibold text-sm mb-2">Concienciación</h3><p className="text-2xl font-bold text-green-700 mb-1">847</p><p className="text-xs text-gray-600">Empleados capacitados</p></div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4"><h3 className="font-semibold text-sm mb-2">Comportamiento</h3><p className="text-2xl font-bold text-blue-700 mb-1">127</p><p className="text-xs text-gray-600">Reportes este mes</p></div>
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4"><h3 className="font-semibold text-sm mb-2">Cultura</h3><p className="text-2xl font-bold text-purple-700 mb-1">4.2/5</p><p className="text-xs text-gray-600">Índice de seguridad</p></div>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 className="font-semibold text-sm mb-2">Concienciación</h3>
+            <p className="text-2xl font-bold text-green-700 mb-1">
+              {Math.floor(847 + Math.random() * 20)}
+            </p>
+            <p className="text-xs text-gray-600">Empleados capacitados</p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-sm mb-2">Comportamiento</h3>
+            <p className="text-2xl font-bold text-blue-700 mb-1">
+              {Math.floor(127 + Math.random() * 10)}
+            </p>
+            <p className="text-xs text-gray-600">Reportes este mes</p>
+          </div>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h3 className="font-semibold text-sm mb-2">Cultura</h3>
+            <p className="text-2xl font-bold text-purple-700 mb-1">
+              {(4.2 + Math.random() * 0.3).toFixed(1)}/5
+            </p>
+            <p className="text-xs text-gray-600">Índice de seguridad</p>
+          </div>
+        </div>
+        
+        {/* Tests de Phishing por área */}
+        <div className="mt-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Resultados de Tests de Phishing por Área</h3>
+          <div className="space-y-3">
+            {phishingTests.map((test, idx) => (
+              <div key={idx} className="flex items-center justify-between">
+                <span className="font-medium text-sm w-24">{test.area}</span>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-4">
+                    <div 
+                      className="bg-green-500 h-4 rounded-full transition-all duration-500"
+                      style={{ width: `${test.aprobados}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-gray-600 w-20 text-right">
+                  {test.aprobados.toFixed(0)}% aprobados
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -744,7 +1008,10 @@ export default function BCPSecurityMonitor() {
 
   const renderAlerts = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Bell className="w-5 h-5 text-blue-600" />Centro de Alertas</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Bell className="w-5 h-5 text-blue-600" />
+        Centro de Alertas ({alerts.filter(a => !a.read).length} sin leer)
+      </h2>
       <div className="space-y-3">
         {alerts.map((alert) => {
           const alertStyles = {
@@ -755,11 +1022,25 @@ export default function BCPSecurityMonitor() {
           const style = alertStyles[alert.type];
           
           return (
-            <div key={alert.id} className={`border ${style.border} ${style.bg} rounded-lg p-4 ${!alert.read ? 'font-semibold' : 'opacity-75'}`}>
+            <div 
+              key={alert.id} 
+              className={`border ${style.border} ${style.bg} rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                !alert.read ? 'font-semibold' : 'opacity-75'
+              }`}
+              onClick={() => markAlertAsRead(alert.id)}
+            >
               <div className="flex items-start gap-3">
-                {!alert.read && <div className={`w-2 h-2 ${style.dot} rounded-full mt-2`} />}
+                {!alert.read && <div className={`w-2 h-2 ${style.dot} rounded-full mt-2 flex-shrink-0`} />}
                 <AlertTriangle className={`w-5 h-5 ${style.icon} flex-shrink-0 mt-1`} />
-                <div className="flex-1"><p className="text-gray-900">{alert.message}</p><p className="text-xs text-gray-600 mt-1">{alert.time}</p></div>
+                <div className="flex-1">
+                  <p className="text-gray-900">{alert.message}</p>
+                  <p className="text-xs text-gray-600 mt-1">{alert.time}</p>
+                </div>
+                {!alert.read && (
+                  <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                    Marcar leído
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -768,24 +1049,44 @@ export default function BCPSecurityMonitor() {
     </div>
   );
 
+  const infrastructureItems: InfrastructureItem[] = [
+    { name: 'EDR/Antivirus', status: 'Activo', value: '97.6%', color: 'green', icon: Shield, endpoints: '1,847 endpoints' },
+    { name: 'Gateway Email', status: 'Operando', value: '100%', color: 'blue', icon: Mail, endpoints: '2,847 amenazas' },
+    { name: 'Firewall', status: 'Protegido', value: '100%', color: 'purple', icon: Lock, endpoints: 'IDS/IPS activo' },
+    { name: 'SIEM/SOC', status: 'Monitoreando', value: '100%', color: 'orange', icon: Activity, endpoints: 'Vigilancia continua' }
+  ];
+
   const renderInfrastructure = () => (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Server className="w-5 h-5 text-blue-600" />Infraestructura (3.7)</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <Server className="w-5 h-5 text-blue-600" />
+          Infraestructura (3.7)
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { name: 'EDR/Antivirus', status: 'Activo', value: '97.6%', color: 'green', icon: Shield, endpoints: '1,847 endpoints' },
-            { name: 'Gateway Email', status: 'Operando', value: '100%', color: 'blue', icon: Mail, endpoints: '2,847 amenazas' },
-            { name: 'Firewall', status: 'Protegido', value: '100%', color: 'purple', icon: Lock, endpoints: 'IDS/IPS activo' },
-            { name: 'SIEM/SOC', status: 'Monitoreando', value: '100%', color: 'orange', icon: Activity, endpoints: 'Vigilancia continua' }
-          ].map((item, idx) => {
+          {infrastructureItems.map((item, idx) => {
             const Icon = item.icon;
+            const colorClasses: { [key: string]: string } = {
+              green: 'text-green-600 bg-green-500',
+              blue: 'text-blue-600 bg-blue-500', 
+              purple: 'text-purple-600 bg-purple-500',
+              orange: 'text-orange-600 bg-orange-500'
+            };
+            
             return (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2"><Icon className={`w-5 h-5 text-${item.color}-600`} /><h3 className="font-semibold text-sm">{item.name}</h3></div>
+              <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className={`w-5 h-5 ${colorClasses[item.color].split(' ')[0]}`} />
+                  <h3 className="font-semibold text-sm">{item.name}</h3>
+                </div>
                 <p className="text-2xl font-bold text-gray-900">{item.status}</p>
                 <p className="text-xs text-gray-600 mt-1">{item.endpoints}</p>
-                <div className="mt-3 h-1 bg-gray-200 rounded-full overflow-hidden"><div className={`h-full bg-${item.color}-500 animate-pulse`} style={{ width: item.value }} /></div>
+                <div className="mt-3 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${colorClasses[item.color].split(' ')[1]} animate-pulse`} 
+                    style={{ width: item.value }} 
+                  />
+                </div>
               </div>
             );
           })}
@@ -797,20 +1098,50 @@ export default function BCPSecurityMonitor() {
   const renderReports = () => (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><FileText className="w-5 h-5 text-blue-600" />Resultados y Análisis</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-blue-600" />
+          Resultados y Análisis
+        </h2>
         <div className="space-y-4">
-          <div><h3 className="font-semibold text-gray-900 mb-2">Síntesis de Resultados</h3>
-            <div className="bg-gray-50 p-4 rounded-lg"><ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Cobertura antimalware del 97.6%</span></li>
-              <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Tiempo de parcheo: 5.8 días (objetivo ≤7)</span></li>
-              <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>2,847 amenazas bloqueadas mensualmente</span></li>
-            </ul></div>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Síntesis de Resultados</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Cobertura antimalware del {((coverageAntimalware.retail + coverageAntimalware.empresas + coverageAntimalware.ti) / 3).toFixed(1)}%</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>Tiempo de parcheo: {(patchingTime.reduce((sum, item) => sum + item.dias, 0) / patchingTime.length).toFixed(1)} días (objetivo ≤7)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>{Math.floor(2847 + Math.random() * 100).toLocaleString()} amenazas bloqueadas mensualmente</span>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div><h3 className="font-semibold text-gray-900 mb-2">Nivel de Madurez</h3>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Nivel de Madurez</h3>
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <div><p className="text-3xl font-bold text-blue-900">Nivel 3</p><p className="text-sm text-blue-700">Definido y Establecido</p></div>
-                <div className="flex gap-2">{[1, 2, 3, 4, 5].map((level) => (<div key={level} className={`w-8 h-24 rounded ${level <= 3 ? 'bg-blue-600' : 'bg-gray-300'} flex items-end justify-center pb-2`}><span className="text-white text-xs font-bold">{level}</span></div>))}</div>
+                <div>
+                  <p className="text-3xl font-bold text-blue-900">Nivel 3</p>
+                  <p className="text-sm text-blue-700">Definido y Establecido</p>
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <div 
+                      key={level} 
+                      className={`w-8 h-24 rounded flex items-end justify-center pb-2 ${
+                        level <= 3 ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span className="text-white text-xs font-bold">{level}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -827,12 +1158,23 @@ export default function BCPSecurityMonitor() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-10 h-10" />
-              <div><h1 className="text-2xl font-bold">BCP Security Monitor</h1><p className="text-blue-200 text-sm">Sistema de Gestión Antimalware - DSS05.01 COBIT 2019</p></div>
+              <div>
+                <h1 className="text-2xl font-bold">BCP Security Monitor</h1>
+                <p className="text-blue-200 text-sm">Sistema de Gestión Antimalware - DSS05.01 COBIT 2019</p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-right"><p className="text-sm text-blue-200">Banco de Crédito del Perú</p><p className="text-xs text-blue-300">Última actualización: {new Date().toLocaleString('es-PE')}</p></div>
-              <div className="relative"><Bell className="w-6 h-6 cursor-pointer hover:text-blue-200 transition-colors" />
-                {alerts.filter(a => !a.read).length > 0 && (<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{alerts.filter(a => !a.read).length}</span>)}
+              <div className="text-right">
+                <p className="text-sm text-blue-200">Banco de Crédito del Perú</p>
+                <p className="text-xs text-blue-300">Última actualización: {new Date().toLocaleString('es-PE')}</p>
+              </div>
+              <div className="relative">
+                <Bell className="w-6 h-6 cursor-pointer hover:text-blue-200 transition-colors" />
+                {alerts.filter(a => !a.read).length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {alerts.filter(a => !a.read).length}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -854,8 +1196,17 @@ export default function BCPSecurityMonitor() {
             ].map((tab) => {
               const Icon = tab.icon;
               return (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${activeTab === tab.id ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50'}`}>
-                  <Icon className="w-4 h-4" />{tab.label}
+                <button 
+                  key={tab.id} 
+                  onClick={() => setActiveTab(tab.id)} 
+                  className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                    activeTab === tab.id 
+                      ? 'border-blue-600 text-blue-600 bg-blue-50' 
+                      : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
                 </button>
               );
             })}
