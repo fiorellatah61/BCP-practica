@@ -546,7 +546,6 @@
 //     </div>
 //   );
 // }
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -554,7 +553,7 @@ import { Shield, AlertTriangle, CheckCircle, TrendingUp, Users, Server, Mail, Lo
 
 // Interfaces para tipado seguro
 interface Alert {
-  // id: number;
+  id: number; // QUITÉ EL COMENTARIO DE ESTA LÍNEA
   type: 'critical' | 'warning' | 'info';
   message: string;
   time: string;
@@ -613,6 +612,7 @@ interface InfrastructureItem {
 export default function BCPSecurityMonitor() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alerts, setAlerts] = useState<Alert[]>([
+    // AHORA LAS IDs ESTÁN CORRECTAS
     { id: 1, type: 'critical', message: 'Intento de phishing detectado en Área Retail', time: 'Hace 5 min', read: false },
     { id: 2, type: 'warning', message: '15 endpoints pendientes de actualización', time: 'Hace 1 hora', read: false },
     { id: 3, type: 'info', message: 'Parches de seguridad aplicados exitosamente', time: 'Hace 2 horas', read: true }
